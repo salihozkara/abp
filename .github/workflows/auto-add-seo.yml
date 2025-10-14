@@ -180,17 +180,38 @@ jobs:
           '''
               return seo_tag + content
 
+          # Ignored folders from appsettings.json
+          IGNORED_FOLDERS = ['Blog-Posts', 'Community-Articles', '_deleted', '_resources']
+          
+          def is_file_ignored(filepath):
+              """Check if file is in an ignored folder"""
+              path_parts = filepath.split('/')
+              for ignored in IGNORED_FOLDERS:
+                  if ignored in path_parts:
+                      return True
+              return False
+          
           # Process changed files
           changed_files_str = """${{ steps.changed-files.outputs.changed_files }}"""
           changed_files = [f.strip() for f in changed_files_str.strip().split('\n') if f.strip()]
           processed_count = 0
           skipped_count = 0
           skipped_too_short = 0
+          skipped_ignored = 0
           
           print("🤖 Processing changed markdown files...\n")
+          print(f"🚫 Ignored folders: {', '.join(IGNORED_FOLDERS)}\n")
           
           for filepath in changed_files:
               if not filepath.endswith('.md'):
+                  continue
+              
+              # Check if file is in ignored folder
+              if is_file_ignored(filepath):
+                  print(f"📄 Processing: {filepath}")
+                  print(f"   🚫 Skipped (ignored folder)\n")
+                  skipped_ignored += 1
+                  skipped_count += 1
                   continue
                   
               print(f"📄 Processing: {filepath}")
@@ -236,10 +257,11 @@ jobs:
           print(f"   ✅ Updated: {processed_count}")
           print(f"   ⏭️  Skipped (total): {skipped_count}")
           print(f"   ⏭️  Skipped (too short): {skipped_too_short}")
+          print(f"   🚫 Skipped (ignored folder): {skipped_ignored}")
           
           # Save counts for next step
           with open('/tmp/seo_stats.txt', 'w') as f:
-              f.write(f"{processed_count}\n{skipped_count}\n{skipped_too_short}")
+              f.write(f"{processed_count}\n{skipped_count}\n{skipped_too_short}\n{skipped_ignored}")
           
           PYTHON_SCRIPT
 
@@ -268,6 +290,7 @@ jobs:
             const processedCount = parseInt(stats[0]) || 0;
             const skippedCount = parseInt(stats[1]) || 0;
             const skippedTooShort = parseInt(stats[2]) || 0;
+            const skippedIgnored = parseInt(stats[3]) || 0;
             const prNumber = ${{ github.event.pull_request.number }};
             const baseRef = '${{ github.event.pull_request.base.ref }}';
             const branchName = '${{ env.BRANCH_NAME }}';
@@ -282,7 +305,10 @@ jobs:
               prBody += `- ✅ **Updated:** ${processedCount} file(s)\n`;
               prBody += `- ⏭️ **Skipped (total):** ${skippedCount} file(s)\n`;
               if (skippedTooShort > 0) {
-                prBody += `- ⏭️ **Skipped (content < 200 chars):** ${skippedTooShort} file(s)\n`;
+                prBody += `  - ⏭️ Content < 200 chars: ${skippedTooShort} file(s)\n`;
+              }
+              if (skippedIgnored > 0) {
+                prBody += `  - 🚫 Ignored folders: ${skippedIgnored} file(s)\n`;
               }
               prBody += '\n## 📝 Modified Files\n';
               prBody += changedFiles.slice(0, 20).map(f => `- \`${f}\``).join('\n');
