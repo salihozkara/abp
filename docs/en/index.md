@@ -3,7 +3,8 @@
 ````json
 //[doc-seo]
 {
-  "Tags": "test"
+    "Tags": "test",
+    "Description": "Explore ABP Documentation to learn how to build enterprise software with .NET and ASP.NET Core, leveraging best practices and automation."
 }
 ````
 ABP offers an **opinionated architecture** to build enterprise software solutions with **best practices** on top of the **.NET** and the **ASP.NET Core** platforms. It provides the fundamental infrastructure, production-ready startup templates, pre-built application modules, UI themes, tooling, guides and documentation to implement that architecture properly and **automate the details** and repetitive works as much as possible.
