@@ -43,10 +43,6 @@ jobs:
           BRANCH_NAME="auto-seo/${{ github.event.pull_request.number }}"
           git checkout -b $BRANCH_NAME
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
-          
-          # Cherry-pick the merge commit to get the changes
-          git cherry-pick -m 1 ${{ github.event.pull_request.merge_commit_sha }} || true
-          git reset HEAD
 
       - name: Get changed markdown files from merged PR
         id: changed-files
@@ -61,6 +57,15 @@ jobs:
             echo "has_files=false" >> $GITHUB_OUTPUT
           else
             echo "has_files=true" >> $GITHUB_OUTPUT
+            
+            # Checkout the changed files from merge commit
+            echo "Checking out changed files from merge commit..."
+            while IFS= read -r file; do
+              if [ -n "$file" ]; then
+                echo "  Checking out: $file"
+                git checkout ${{ github.event.pull_request.merge_commit_sha }} -- "$file" || echo "  Warning: Could not checkout $file"
+              fi
+            done <<< "$FILES"
           fi
 
       - name: Process changed files and add SEO descriptions
@@ -222,13 +227,24 @@ jobs:
       - name: Commit and push changes
         if: steps.changed-files.outputs.has_files == 'true'
         run: |
-          git add docs/en/**/*.md
+          # Show git status for debugging
+          echo "Git status before adding:"
+          git status
+          
+          # Add all changes in docs/en directory
+          git add -A docs/en/
+          
+          echo ""
+          echo "Git status after adding:"
+          git status
           
           if git diff --staged --quiet; then
             echo "No changes to commit"
             echo "has_commits=false" >> $GITHUB_ENV
           else
+            echo "Committing changes..."
             git commit -m "docs: Add SEO descriptions to modified documentation files" -m "Related to PR #${{ github.event.pull_request.number }}"
+            echo "Pushing to branch ${{ env.BRANCH_NAME }}..."
             git push origin ${{ env.BRANCH_NAME }}
             echo "has_commits=true" >> $GITHUB_ENV
           fi
