@@ -1,3 +1,10 @@
+```json
+//[doc-seo]
+{
+    "Description": "Learn how to effectively build .NET projects across multiple repositories or solutions using the ABP Framework's build command, ensuring seamless project management and dependency handling."
+}
+```
+
 # Build Command 
 
 Building a .NET project is hard when the project references a project reference outside of the solution or even from a different GIT repository. This command builds a GIT repository and it's depending repositories or a single .NET solution File. In order ```build``` command to work, its **executing directory** or passed ```--working-directory``` parameter's directory must contain one of;
