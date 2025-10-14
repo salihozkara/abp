@@ -198,6 +198,7 @@ jobs:
           skipped_count = 0
           skipped_too_short = 0
           skipped_ignored = 0
+          updated_files = []  # Track actually updated files
           
           print("🤖 Processing changed markdown files...\n")
           print(f"🚫 Ignored folders: {', '.join(IGNORED_FOLDERS)}\n")
@@ -249,6 +250,7 @@ jobs:
                   
                   print(f"   ✅ Updated successfully\n")
                   processed_count += 1
+                  updated_files.append(filepath)  # Track this file as updated
                   
               except Exception as e:
                   print(f"   ❌ Error: {e}\n")
@@ -259,9 +261,13 @@ jobs:
           print(f"   ⏭️  Skipped (too short): {skipped_too_short}")
           print(f"   🚫 Skipped (ignored folder): {skipped_ignored}")
           
-          # Save counts for next step
+          # Save counts and updated files list for next step
           with open('/tmp/seo_stats.txt', 'w') as f:
               f.write(f"{processed_count}\n{skipped_count}\n{skipped_too_short}\n{skipped_ignored}")
+          
+          # Save updated files list
+          with open('/tmp/seo_updated_files.txt', 'w') as f:
+              f.write('\n'.join(updated_files))
           
           PYTHON_SCRIPT
 
@@ -296,8 +302,9 @@ jobs:
             const branchName = '${{ env.BRANCH_NAME }}';
             
             if (processedCount > 0) {
-              const changedFilesStr = `${{ steps.changed-files.outputs.changed_files }}`;
-              const changedFiles = changedFilesStr.trim().split('\n').filter(f => f.trim() && f.endsWith('.md'));
+              // Read the actually updated files list (not all changed files)
+              const updatedFilesStr = fs.readFileSync('/tmp/seo_updated_files.txt', 'utf8');
+              const updatedFiles = updatedFilesStr.trim().split('\n').filter(f => f.trim());
               
               let prBody = '🤖 **Automated SEO Descriptions**\n\n';
               prBody += `This PR automatically adds SEO descriptions to documentation files that were modified in PR #${prNumber}.\n\n`;
@@ -311,9 +318,9 @@ jobs:
                 prBody += `  - 🚫 Ignored folders: ${skippedIgnored} file(s)\n`;
               }
               prBody += '\n## 📝 Modified Files\n';
-              prBody += changedFiles.slice(0, 20).map(f => `- \`${f}\``).join('\n');
-              if (changedFiles.length > 20) {
-                prBody += `\n- ... and ${changedFiles.length - 20} more`;
+              prBody += updatedFiles.slice(0, 20).map(f => `- \`${f}\``).join('\n');
+              if (updatedFiles.length > 20) {
+                prBody += `\n- ... and ${updatedFiles.length - 20} more`;
               }
               prBody += '\n\n## 🔧 Details\n';
               prBody += `- **Related PR:** #${prNumber}\n\n`;
