@@ -18,7 +18,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.base.ref }}
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -36,15 +36,23 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           
+          # Checkout base branch first
+          git checkout ${{ github.event.pull_request.base.ref }}
+          
+          # Create new branch from base
           BRANCH_NAME="auto-seo/${{ github.event.pull_request.number }}"
           git checkout -b $BRANCH_NAME
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+          
+          # Cherry-pick the merge commit to get the changes
+          git cherry-pick -m 1 ${{ github.event.pull_request.merge_commit_sha }} || true
+          git reset HEAD
 
       - name: Get changed markdown files from merged PR
         id: changed-files
         run: |
           # Get files changed in the merged PR
-          FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.merge_commit_sha }} | grep 'docs/en/.*\.md$' || true)
+          FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.merge_commit_sha }} | grep 'docs/en/.*\.md$' || true)
           echo "changed_files<<EOF" >> $GITHUB_OUTPUT
           echo "$FILES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
