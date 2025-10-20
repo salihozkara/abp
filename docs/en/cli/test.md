@@ -1,3 +1,10 @@
+```json
+//[doc-seo]
+{
+    "Description": "Learn how to create new ABP solutions with sample commands for various templates using the ABP CLI, including Angular and mobile options."
+}
+```
+
 # ABP CLI - New Solution Sample Commands 
 
 ```json
