@@ -79,9 +79,6 @@ def add_seo_description(content, description):
     """Add or update SEO description in content"""
     import json
     
-    # Escape special characters for JSON
-    escaped_desc = description.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
-    
     # Check if SEO block already exists
     pattern = r'(```+)json\s*//\[doc-seo\]\s*(\{.*?\})\s*\1'
     match = re.search(pattern, content, flags=re.DOTALL)
@@ -111,6 +108,9 @@ def add_seo_description(content, description):
             pass
     
     # No existing block or invalid JSON, add new block at the beginning
+    # Escape special characters for JSON
+    escaped_desc = description.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
+    
     seo_tag = f'''```json
 //[doc-seo]
 {{
@@ -167,8 +167,8 @@ def main():
         print(f"📄 Processing: {filepath}")
         
         try:
-            # Read file
-            with open(filepath, 'r', encoding='utf-8') as f:
+            # Read file with original line endings
+            with open(filepath, 'r', encoding='utf-8', newline='') as f:
                 content = f.read()
             
             # Check if content is too short (less than 200 characters)
@@ -190,12 +190,22 @@ def main():
             description = generate_description(content, filename)
             print(f"   💡 Generated: {description}")
             
-            # Add SEO tag
-            updated_content = add_seo_description(content, description)
+            # Add SEO tag at the beginning
+            # Escape special characters for JSON
+            escaped_desc = description.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
             
-            # Write back
-            with open(filepath, 'w', encoding='utf-8') as f:
-                f.write(updated_content)
+            seo_tag = f'''```json
+//[doc-seo]
+{{
+    "Description": "{escaped_desc}"
+}}
+```
+
+'''
+            
+            # Write SEO tag + original content (preserving line endings)
+            with open(filepath, 'w', encoding='utf-8', newline='') as f:
+                f.write(seo_tag + content)
             
             print(f"   ✅ Updated successfully\n")
             processed_count += 1
