@@ -1,3 +1,10 @@
+```json
+//[doc-seo]
+{
+    "Description": "VoloDocs simplifies software documentation with GitHub integration, enabling beautiful, versioned docs across platforms. Free & open-source!"
+}
+```
+
 # VoloDocs 
 
 
