@@ -3,8 +3,9 @@
 ```json
 //[doc-seo]
 {
-	"Tags": "test",
-	"Tags2": "test3"
+    "Tags": "test",
+    "Tags2": "test3",
+    "Description": "Learn how to use ABP CLI commands to create new ABP solutions and projects with various configurations, including Angular and mobile apps."
 }
 ```
 
