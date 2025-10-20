@@ -1,3 +1,10 @@
+```json
+//[doc-seo]
+{
+    "Description": "Explore the ABP CLI documentation to learn about the new command line tool for ABP solutions, installation steps, and key differences from the old CLI."
+}
+```
+
 # ABP CLI
 
 
