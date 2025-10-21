@@ -3,8 +3,9 @@
 ```json
 //[doc-seo]
 {
-	"Tags": "test",
-	"Tags2": "test3"
+    "Tags": "test",
+    "Tags2": "test3",
+    "Description": "Learn how to use the ABP CLI to create new solutions and projects with sample commands, including Angular, React Native, and MAUI."
 }
 ```
 
